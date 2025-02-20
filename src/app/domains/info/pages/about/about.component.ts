@@ -7,6 +7,7 @@ import { HighlightDirective } from '@shared/directives/highlight.directive';
 import { WaveAudioComponent } from '@info/components/wave-audio/wave-audio.component';
 import { FormsModule } from '@angular/forms';
 import { BehaviorSubject, delay, Subject } from 'rxjs';
+import { ReversePipe } from '@shared/pipes/reverse.pipe';
 
 @Component({
   selector: 'app-about',
@@ -16,6 +17,7 @@ import { BehaviorSubject, delay, Subject } from 'rxjs';
     WaveAudioComponent,
     HighlightDirective,
     FormsModule,
+    ReversePipe,
   ],
   templateUrl: './about.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
