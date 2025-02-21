@@ -1,7 +1,7 @@
 import { createServiceFactory, SpectatorService } from '@ngneat/spectator/jest';
 
 import { CartService } from './cart.service';
-import { Product } from '@shared/models/product.model';
+import { generateFakeProduct } from '@shared/models/product.mock';
 
 describe('CartService', () => {
   let spectator: SpectatorService<CartService>;
@@ -16,37 +16,8 @@ describe('CartService', () => {
   });
 
   describe('cart operations', () => {
-    const mockProduct1: Product = {
-      id: 1,
-      title: 'Product 1',
-      price: 10,
-      description: 'Description 1',
-      images: ['image1', 'image2'],
-      category: {
-        id: 1,
-        name: 'Category 1',
-        image: 'image1',
-        slug: 'category-1',
-      },
-      creationAt: new Date().toISOString(),
-      slug: 'product-1',
-    };
-
-    const mockProduct2: Product = {
-      id: 2,
-      title: 'Product 2',
-      price: 20,
-      description: 'Description 2',
-      images: ['image1'],
-      category: {
-        id: 1,
-        name: 'Category 1',
-        image: 'image1',
-        slug: 'category-1',
-      },
-      creationAt: new Date().toISOString(),
-      slug: 'product-2',
-    };
+    const mockProduct1 = generateFakeProduct({ price: 10 });
+    const mockProduct2 = generateFakeProduct({ price: 20 });
 
     it('should initialize with an empty cart', () => {
       expect(spectator.service.cart()).toEqual([]);
@@ -69,10 +40,7 @@ describe('CartService', () => {
     });
 
     it('should handle adding products with zero price', () => {
-      const zeroProduct: Product = {
-        ...mockProduct1,
-        price: 0,
-      };
+      const zeroProduct = generateFakeProduct({ price: 0 });
       spectator.service.addToCart(zeroProduct);
 
       expect(spectator.service.cart()).toHaveLength(1);
@@ -80,10 +48,7 @@ describe('CartService', () => {
     });
 
     it('should handle adding products with negative price', () => {
-      const negativeProduct: Product = {
-        ...mockProduct1,
-        price: -10,
-      };
+      const negativeProduct = generateFakeProduct({ price: -10 });
       spectator.service.addToCart(negativeProduct);
 
       expect(spectator.service.cart()).toHaveLength(1);
@@ -99,10 +64,7 @@ describe('CartService', () => {
     });
 
     it('should handle floating point prices correctly', () => {
-      const floatProduct: Product = {
-        ...mockProduct1,
-        price: 10.99,
-      };
+      const floatProduct = generateFakeProduct({ price: 10.99 });
       spectator.service.addToCart(floatProduct);
 
       expect(spectator.service.total()).toBe(10.99);
