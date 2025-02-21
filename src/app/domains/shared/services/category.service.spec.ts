@@ -8,12 +8,16 @@ import { environment } from '@env/environment';
 import { generateFakeCategory } from '../models/category.mock';
 import { Category } from '../models/category.model';
 
+import fetchMock, { enableFetchMocks } from 'jest-fetch-mock';
+enableFetchMocks();
+
 describe('CategoryService', () => {
   let spectator: SpectatorHttp<CategoryService>;
   const createHttp = createHttpFactory(CategoryService);
 
   beforeEach(() => {
     spectator = createHttp();
+    fetchMock.resetMocks();
   });
 
   describe('getAll', () => {
@@ -68,56 +72,44 @@ describe('CategoryService', () => {
       ];
 
       // Mock global fetch
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          json: () => Promise.resolve(mockCategories),
-        } as Response)
-      );
+      fetchMock.mockResponseOnce(JSON.stringify(mockCategories));
 
       const result = await spectator.service.getAllPromise();
       expect(result).toEqual(mockCategories);
-      expect(global.fetch).toHaveBeenCalledWith(url);
+      expect(fetch).toHaveBeenCalledWith(url);
     });
 
     it('should handle empty categories list with Promise', async () => {
       const mockCategories: Category[] = [];
 
       // Mock global fetch
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          json: () => Promise.resolve(mockCategories),
-        } as Response)
-      );
+      fetchMock.mockResponseOnce(JSON.stringify(mockCategories));
 
       const result = await spectator.service.getAllPromise();
       expect(result).toEqual([]);
-      expect(global.fetch).toHaveBeenCalledWith(url);
+      expect(fetch).toHaveBeenCalledWith(url);
     });
 
     it('should handle network error in Promise', async () => {
       const errorMessage = 'Network Error';
 
       // Mock global fetch to throw error
-      global.fetch = jest.fn(() => Promise.reject(new Error(errorMessage)));
+      fetchMock.mockRejectOnce(new Error(errorMessage));
 
-      await expect(async () => {
-        await spectator.service.getAllPromise();
-      }).rejects.toThrow(errorMessage);
-      expect(global.fetch).toHaveBeenCalledWith(url);
+      await expect(spectator.service.getAllPromise()).rejects.toThrow(
+        errorMessage
+      );
+      expect(fetch).toHaveBeenCalledWith(url);
     });
 
     it('should handle JSON parsing error in Promise', async () => {
       // Mock global fetch with invalid JSON
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          json: () => Promise.reject(new Error('Invalid JSON')),
-        } as Response)
-      );
+      fetchMock.mockResponseOnce('Invalid JSON');
 
-      await expect(async () => {
-        await spectator.service.getAllPromise();
-      }).rejects.toThrow('Invalid JSON');
-      expect(global.fetch).toHaveBeenCalledWith(url);
+      await expect(spectator.service.getAllPromise()).rejects.toThrow(
+        'Invalid JSON'
+      );
+      expect(fetch).toHaveBeenCalledWith(url);
     });
   });
 });
