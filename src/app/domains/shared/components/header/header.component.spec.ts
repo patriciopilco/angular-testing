@@ -1,4 +1,8 @@
-import { Spectator, byTestId, createRoutingFactory } from '@ngneat/spectator/jest';
+import {
+  Spectator,
+  byTestId,
+  createRoutingFactory,
+} from '@ngneat/spectator/jest';
 import { HeaderComponent } from './header.component';
 import { CartService } from '@shared/services/cart.service';
 import { Product } from '@shared/models/product.model';
