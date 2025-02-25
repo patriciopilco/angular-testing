@@ -46,6 +46,7 @@
         {{ data.price | currency: '$' : 'symbol' : '1.0' }}
       </p>
       <button
+        data-testid="add-to-cart"
         (click)="addToCart()"
         class="flex text-white bg-red-500 border-0 py-2 px-6 focus:outline-none hover:bg-red-600 rounded">
         Add To Cart
