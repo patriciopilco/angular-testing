@@ -1,0 +1,104 @@
+Resumen
+
+La implementación de pruebas unitarias es fundamental para garantizar la calidad del código en aplicaciones Angular. Jest se ha convertido en el framework de testing más popular en el ecosistema JavaScript, ofreciendo una alternativa robusta a las soluciones tradicionales como Karma y Jasmine. En este artículo, exploraremos cómo configurar Jest en un proyecto Angular y comenzar a escribir nuestras primeras pruebas unitarias.
+
+¿Por qué migrar de Karma y Jasmine a Jest?
+Angular tradicionalmente ha utilizado Karma como test runner y Jasmine como framework de testing. Sin embargo, esta combinación está perdiendo popularidad y soporte:
+
+Karma, creado por Google, ya no recibe soporte activo y probablemente el proyecto termine descontinuándose.
+Jasmine, aunque sigue siendo soportado, ha sido superado en popularidad por Jest.
+Jest ofrece varias ventajas significativas:
+
+Incluye su propio test runner, eliminando la necesidad de Karma
+Proporciona una experiencia de desarrollo más integrada
+Ofrece mejor rendimiento en la ejecución de pruebas
+Tiene una comunidad activa y creciente
+El equipo de Angular está trabajando en integrar Jest directamente en Angular CLI, pero esta solución aún está en desarrollo y no es completamente estable para uso en producción.
+
+¿Cómo configurar Jest en un proyecto Angular?
+Eliminando las dependencias de Karma
+Si estás trabajando con un proyecto Angular existente que utiliza Karma, el primer paso es eliminar estas dependencias:
+
+npm remove karma karma-chrome-launcher karma-coverage karma-jasmine karma-jasmine-html-reporter
+También debes eliminar los archivos de configuración relacionados:
+
+karma.conf.js en la raíz del proyecto
+src/test.ts
+Instalando Jest y sus dependencias
+A continuación, instalaremos Jest y las dependencias necesarias:
+
+npm install --save-dev jest @types/jest @angular-builders/jest
+Configurando TypeScript para Jest
+Debemos modificar el archivo tsconfig.spec.json para utilizar Jest en lugar de Jasmine:
+
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "types": [
+      "jest"
+    ]
+  },
+  "include": [
+    "src/**/*.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}
+Configurando Angular para usar Jest
+En el archivo angular.json, necesitamos modificar la sección de test para utilizar Jest:
+
+"test": {
+  "builder": "@angular-builders/jest:run",
+  "options": {
+    "polyfills": ["zone.js", "zone.js/testing"],
+    "tsConfig": "tsconfig.spec.json",
+    "configPath": "jest.config.ts"
+  }
+}
+Creando la configuración de Jest
+Debemos crear un archivo jest.config.ts en la raíz del proyecto para configurar Jest correctamente:
+
+import { Config } from 'jest';
+
+const config: Config = {
+  moduleNameMapper: {
+    "^@shared/(.*)$": "<rootDir>/src/app/shared/$1",
+    "^@products/(.*)$": "<rootDir>/src/app/products/$1",
+    "^@info/(.*)$": "<rootDir>/src/app/info/$1",
+    "^@env/(.*)$": "<rootDir>/src/environments/$1"
+  },
+  collectCoverage: true,
+  coverageReporters: ["html", "text-summary"],
+  coverageDirectory: "coverage/my-app"
+};
+
+export default config;
+Es importante destacar que la configuración de moduleNameMapper debe coincidir con los path aliases definidos en tu tsconfig.json. Esto permite que Jest pueda resolver correctamente las importaciones con alias durante las pruebas.
+
+¿Cómo escribir nuestra primera prueba con Jest?
+Una vez completada la configuración, podemos crear nuestro primer archivo de prueba. Por convención, los archivos de prueba en Angular tienen la extensión .spec.ts:
+
+// demo.spec.ts
+describe('Mi primera prueba', () => {
+  it('debería verificar que true es igual a true', () => {
+    expect(true).toBe(true);
+  });
+});
+Para ejecutar las pruebas, simplemente utilizamos el comando:
+
+ng test
+Jest detectará automáticamente todos los archivos con extensión .spec.ts y ejecutará las pruebas definidas en ellos.
+
+¿Qué consideraciones adicionales debemos tener?
+Soporte para Zone.js
+Es importante mantener los polyfills de Zone.js en la configuración, ya que Angular todavía depende de ellos para el testing:
+
+"polyfills": ["zone.js", "zone.js/testing"]
+Aunque Angular está trabajando en un nuevo modelo reactivo que eventualmente eliminará la dependencia de Zone.js, por ahora es necesario mantenerlo para que las pruebas funcionen correctamente.
+
+Configuración de path aliases
+Una de las razones por las que necesitamos un archivo de configuración personalizado para Jest es para manejar los path aliases (importaciones cortas) que podemos tener definidos en nuestro tsconfig.json.
+
+Jest no lee automáticamente esta configuración de TypeScript, por lo que debemos mapear manualmente estos aliases en el archivo jest.config.ts utilizando expresiones regulares.
+
+La implementación de pruebas unitarias con Jest en Angular nos permite asegurar la calidad de nuestro código de manera eficiente y moderna. Aunque la configuración inicial puede parecer compleja, los beneficios a largo plazo en términos de velocidad, facilidad de uso y mantenimiento hacen que valga la pena el esfuerzo. ¿Has implementado Jest en tus proyectos Angular? Comparte tu experiencia en los comentarios.

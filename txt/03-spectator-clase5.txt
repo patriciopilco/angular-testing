@@ -1,0 +1,48 @@
+Resumen
+
+La librería Spectator es una herramienta revolucionaria para simplificar las pruebas unitarias en Angular. Si alguna vez has luchado con el exceso de código boilerplate al escribir tests, esta solución te cambiará la forma de trabajar. Spectator ofrece una manera elegante y eficiente de crear pruebas más legibles y mantenibles, convirtiéndose en un recurso imprescindible para los desarrolladores de Angular que buscan optimizar su proceso de testing.
+
+¿Qué es Spectator y por qué deberías usarlo en tus pruebas de Angular?
+Escribir pruebas unitarias en Angular tradicionalmente ha sido un desafío que requiere mucho código repetitivo. Spectator surge como una solución a este problema, ofreciendo una forma más sencilla y limpia de escribir tests. Esta librería reduce significativamente el boilerplate y hace que el código de pruebas sea más legible y mantenible.
+
+Entre sus características principales encontramos:
+
+Simplificación del código de pruebas
+Mayor legibilidad en los tests
+Herramientas específicas para probar directivas, servicios y otros componentes de Angular
+Compatibilidad con diferentes frameworks de testing
+Spectator se ha convertido en una herramienta muy recomendada en el ámbito laboral y la industria del desarrollo con Angular, precisamente por estas ventajas que ofrece.
+
+¿Cómo instalar Spectator en tu proyecto Angular?
+La instalación de Spectator es bastante sencilla. Solo necesitas ejecutar el siguiente comando en tu terminal:
+
+npm install @ngneat/spectator --save-dev
+Con este simple paso, ya tendrás Spectator disponible en tu proyecto para comenzar a escribir pruebas más eficientes.
+
+Compatibilidad con versiones de Angular
+Un aspecto importante a considerar es que Spectator se versiona de acuerdo a Angular. Esto significa que cada versión de Spectator está diseñada para trabajar con una versión específica de Angular.
+
+Por ejemplo:
+
+Si trabajas con Angular 19, deberías usar Spectator 19
+Si tu proyecto usa Angular 14, necesitarás alinear la versión de Spectator a esa versión
+Para verificar las versiones disponibles, puedes revisar los releases en el repositorio de GitHub de Spectator. Allí encontrarás todas las versiones y podrás elegir la que mejor se adapte a tu proyecto.
+
+¿Qué frameworks de testing soporta Spectator?
+Spectator ofrece una gran flexibilidad en cuanto a los frameworks de testing que puedes utilizar:
+
+Jasmine: Viene con soporte para Jasmine por defecto, ya que este es el framework que Angular usa tradicionalmente.
+Jest: También tiene soporte completo para Jest, que es el framework que utilizaremos en nuestros ejemplos.
+Vitest: Están agregando soporte para Vitest, que parece ser el posible reemplazo futuro de Jest, ya que está escrito en Vite y ofrece mayor velocidad.
+Aunque Vitest está ganando popularidad, Jest sigue siendo el estándar más común en la actualidad, por lo que es una excelente opción para comenzar.
+
+¿Qué podemos probar con Spectator?
+Una vez instalado Spectator, estamos listos para comenzar a escribir pruebas unitarias más eficientes. Esta librería nos permite probar diversos elementos de Angular, como:
+
+Componentes
+Servicios
+Directivas
+Pipes
+En las próximas secciones, comenzaremos explorando cómo utilizar Spectator para probar pipes en Angular, que son uno de los elementos más sencillos para iniciarse en el testing.
+
+La implementación de Spectator en tu flujo de trabajo de testing no solo mejorará la calidad de tus pruebas, sino que también aumentará tu productividad al reducir el tiempo dedicado a escribir código boilerplate. ¿Has utilizado alguna vez herramientas similares para simplificar tus pruebas en Angular? Comparte tu experiencia y descubre cómo esta librería puede transformar tu enfoque de testing.

@@ -1,0 +1,115 @@
+Resumen
+
+La inyección de dependencias es un concepto fundamental en Angular que permite crear aplicaciones modulares y fáciles de probar. Dominar las técnicas de testing para servicios con dependencias inyectadas es esencial para garantizar la calidad y robustez de nuestras aplicaciones.
+
+¿Cómo probar servicios con inyección de dependencias en Angular?
+Cuando trabajamos con servicios en Angular que dependen de otros servicios, necesitamos un enfoque especial para realizar pruebas unitarias efectivas. El servicio MetaTagsService es un excelente ejemplo para entender este concepto, ya que utiliza los servicios Title y Meta de Angular para actualizar dinámicamente los metadatos de nuestras páginas.
+
+El servicio MetaTagsService tiene como objetivo principal mejorar el SEO y generar correctamente el Open Graph para nuestras páginas con Server-Side Rendering. Veamos cómo podemos probarlo adecuadamente.
+
+Entendiendo el aislamiento en las pruebas unitarias
+Las pruebas unitarias se caracterizan por probar partes aisladas del código. Una práctica recomendada es no probar el comportamiento de las dependencias, ya que estas deberían tener sus propias pruebas unitarias. Como dice el instructor:
+
+"El Unitesting es un poquito egoísta, es un poquito decir como lavarse las manos y es decir, como mira, MetaTagService cumple con su funcionalidad, ahora que lo haga title y Meta, eso no es problema mío."
+
+Esto significa que nuestra responsabilidad al probar MetaTagsService no es verificar si los métodos de Title y Meta funcionan correctamente, sino asegurarnos de que nuestro servicio los llama adecuadamente.
+
+Creando el archivo de prueba
+Para comenzar, creamos un archivo de prueba con el nombre meta-tags.service.spec.ts. La estructura básica sería:
+
+import { TestBed } from '@angular/core/testing';
+import { MetaTagsService } from '@shared/services/meta-tags.service';
+import { Meta, Title } from '@angular/platform-browser';
+
+describe('MetaTagsService', () => {
+  let service: MetaTagsService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(MetaTagsService);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});
+Suplantando las dependencias
+La clave para probar servicios con inyección de dependencias es suplantar o mockear las dependencias. Esto nos permite controlar su comportamiento y verificar si nuestro servicio las utiliza correctamente.
+
+Para ello, modificamos la configuración del TestBed:
+
+beforeEach(() => {
+  TestBed.configureTestingModule({
+    providers: [
+      MetaTagsService,
+      {
+        provide: Title,
+        useValue: {
+          setTitle: jest.fn()
+        }
+      },
+      {
+        provide: Meta,
+        useValue: {
+          updateTag: jest.fn()
+        }
+      }
+    ]
+  });
+  service = TestBed.inject(MetaTagsService);
+  metaPlatform = TestBed.inject(Meta);
+  titlePlatform = TestBed.inject(Title);
+});
+En este código, estamos diciendo a Angular que cuando alguien solicite los servicios Title o Meta, proporcione nuestras versiones mockeadas en lugar de las reales. Utilizamos jest.fn() para crear funciones espía que nos permitirán verificar si fueron llamadas.
+
+Probando la funcionalidad del servicio
+Ahora podemos escribir una prueba que verifique si nuestro servicio llama correctamente a los métodos de sus dependencias:
+
+it('should update the meta tags', () => {
+  // Ejecutamos el método que queremos probar
+  service.updateMetaTags({
+    title: 'Test Title',
+    description: 'Test Description',
+    url: 'https://test.com',
+    image: 'https://test.com/image.jpg'
+  });
+
+  // Verificamos que el método updateTag de Meta fue llamado el número correcto de veces
+  expect(metaPlatform.updateTag).toHaveBeenCalledTimes(6);
+});
+En esta prueba, estamos verificando que cuando llamamos a updateMetaTags, el método updateTag del servicio Meta se llama exactamente 6 veces (una por cada metadato que se actualiza).
+
+Importancia del archivo jsconfig.ts
+Un aspecto importante a considerar es la configuración de los imports en nuestras pruebas. Si utilizamos short imports (como @shared/services), necesitamos asegurarnos de que Jest pueda resolverlos correctamente.
+
+Para ello, debemos configurar adecuadamente el archivo jsconfig.ts:
+
+{
+  "compilerOptions": {
+    "paths": {
+      "@shared/*": ["./src/app/shared/*"],
+      // Otros paths...
+    }
+  }
+}
+Es crucial que los paths en este archivo coincidan exactamente con los que usamos en nuestro código. Un error común es tener discrepancias como @end vs @ems, lo que provocará que Jest no pueda encontrar los módulos.
+
+¿Qué son los métodos privados y cómo afectan al testing?
+Un aspecto interesante del servicio MetaTagsService es que contiene métodos privados. Los métodos privados no pueden ser probados directamente en las pruebas unitarias, ya que por definición solo son accesibles desde dentro de la clase.
+
+Como menciona el instructor:
+
+"Esto es interesante porque realmente nosotros no podemos hacer Unittest de métodos privados, porque de eso se trata en los métodos privados, que nadie puede acceder a ellos, incluso los Unit test, porque sino estarían rompiendo las reglas de seguridad que le escribimos a esta misma clase."
+
+La solución es probar los métodos públicos que utilizan internamente los métodos privados. De esta manera, indirectamente estamos probando también la funcionalidad de los métodos privados.
+
+¿Cuál es la diferencia entre pruebas unitarias y de integración?
+Es importante entender la distinción entre pruebas unitarias y pruebas de integración:
+
+Pruebas unitarias: Prueban componentes individuales de forma aislada, mockeando sus dependencias.
+Pruebas de integración: Prueban cómo varios componentes funcionan juntos.
+En nuestro ejemplo, estamos realizando pruebas unitarias al probar el MetaTagsService de forma aislada, sin preocuparnos por el comportamiento real de Title y Meta. Si quisiéramos probar cómo estos servicios funcionan juntos, estaríamos realizando pruebas de integración.
+
+Las pruebas unitarias son más rápidas y nos ayudan a identificar problemas específicos en nuestro código, mientras que las pruebas de integración nos aseguran que los diferentes componentes de nuestra aplicación funcionan correctamente juntos.
+
+El testing de servicios con inyección de dependencias es una habilidad fundamental para cualquier desarrollador de Angular. Dominar estas técnicas te permitirá crear aplicaciones más robustas y mantenibles. ¿Has tenido alguna experiencia probando servicios complejos en Angular? Comparte tus experiencias en los comentarios.

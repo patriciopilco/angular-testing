@@ -1,0 +1,53 @@
+Resumen
+
+La cobertura de pruebas es un aspecto fundamental en el desarrollo de software que permite garantizar la calidad del código mediante la medición de qué partes han sido verificadas por pruebas unitarias. En Angular, esta herramienta no solo nos ayuda a identificar áreas sin probar, sino que también nos proporciona métricas valiosas para mantener estándares de calidad en nuestros proyectos.
+
+¿Qué es el coverage report y por qué es importante?
+El coverage report o informe de cobertura es una herramienta esencial que nos indica cuánto de nuestro código está cubierto por pruebas unitarias. Este informe es crucial para el desarrollo de software de calidad ya que proporciona métricas que muestran si las pruebas unitarias han ejercitado o ejecutado diferentes partes del código.
+
+La importancia del coverage report radica en que:
+
+Muestra de forma gráfica qué funciones están cubiertas por pruebas
+Proporciona estadísticas sobre la cobertura general del código
+Identifica bifurcaciones en el código (como condiciones IF) que no han sido probadas
+Ayuda a mantener un estándar de calidad en el proyecto
+Muchos equipos de desarrollo establecen un porcentaje mínimo de cobertura (generalmente entre 80% y 90%) como requisito para poder realizar despliegues. Algunas organizaciones, especialmente las gubernamentales, pueden exigir una cobertura del 100%, aunque esto puede resultar extremo y a veces innecesario para ciertos proyectos.
+
+¿Cómo configurar el coverage report en Angular?
+Para generar un informe de cobertura en un proyecto Angular, debemos seguir estos pasos:
+
+Ejecutar el comando de pruebas con la opción de cobertura:
+ng test --coverage
+Este comando ejecutará las pruebas unitarias y generará un informe detallado que muestra qué archivos han sido probados y en qué medida. Inicialmente, si no tenemos pruebas implementadas, veremos que la mayoría de los archivos aparecen en rojo, indicando una cobertura nula o muy baja.
+
+¿Cómo interpretar el informe de cobertura?
+Al ejecutar el comando anterior, se crea una carpeta llamada "coverage" en la raíz del proyecto. Esta carpeta contiene un archivo HTML que podemos abrir en nuestro navegador para visualizar el informe de manera más amigable.
+
+El informe HTML proporciona información detallada sobre:
+
+Statements: Declaraciones de código cubiertas
+Branches: Bifurcaciones (como condiciones if-else) cubiertas
+Functions: Funciones cubiertas
+Lines: Líneas de código cubiertas
+Lo más valioso de este informe es que podemos navegar por los diferentes archivos de nuestro proyecto y ver gráficamente qué partes del código están cubiertas (en verde) y cuáles no (en rojo).
+
+Por ejemplo, al examinar un pipe como el "reverse pipe", podemos ver exactamente qué líneas de código no han sido ejercitadas por las pruebas unitarias. Esto nos ayuda a identificar áreas específicas donde necesitamos escribir pruebas adicionales.
+
+Beneficios de mantener una buena cobertura de pruebas
+Mantener una cobertura de pruebas adecuada (idealmente alrededor del 80-90%) ofrece numerosos beneficios:
+
+Detección temprana de errores: Las pruebas unitarias ayudan a identificar problemas antes de que lleguen a producción
+Reducción de pruebas manuales: Automatizar las pruebas ahorra tiempo y recursos
+Mayor confianza en el código: Un código bien probado es más confiable y estable
+Facilita el refactoring: Podemos modificar el código con la seguridad de que las pruebas detectarán si algo deja de funcionar
+Mejora la documentación: Las pruebas sirven como documentación viva del comportamiento esperado del código
+Consideraciones importantes sobre el coverage report
+Es importante tener en cuenta algunas consideraciones sobre el informe de cobertura:
+
+La carpeta "coverage" debe ser ignorada en el control de versiones (generalmente se incluye en el archivo .gitignore)
+Una cobertura del 100% no garantiza la ausencia de errores, solo indica que todo el código ha sido ejecutado durante las pruebas
+La calidad de las pruebas es tan importante como la cantidad
+Diferentes tipos de proyectos pueden requerir diferentes niveles de cobertura
+El coverage report es una herramienta valiosa que nos guía en el proceso de escribir pruebas unitarias efectivas, asegurando que nuestro código esté adecuadamente verificado y manteniendo un alto estándar de calidad en nuestros proyectos Angular.
+
+La implementación de esta práctica no solo mejora la calidad del software, sino que también proporciona una mayor confianza al equipo de desarrollo y a los usuarios finales. ¿Has utilizado informes de cobertura en tus proyectos? Comparte tu experiencia y cómo ha impactado en la calidad de tu código.

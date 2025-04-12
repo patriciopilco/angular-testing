@@ -1,0 +1,100 @@
+Resumen
+
+Pruebas unitarias en Angular: Cómo probar pipes con Spectator
+Las pruebas unitarias son fundamentales para garantizar la calidad del código en aplicaciones Angular. Dominar la técnica de testing para pipes es un excelente punto de partida, ya que estos componentes son relativamente sencillos de probar debido a su naturaleza transformadora. En este artículo, aprenderemos a implementar pruebas para pipes utilizando Spectator, una herramienta que simplifica enormemente el proceso de testing en Angular.
+
+¿Qué son los pipes y por qué son ideales para iniciar con pruebas?
+Los pipes en Angular funcionan como transformadores: reciben un parámetro y lo convierten en otro formato o valor. Esta característica los convierte en candidatos perfectos para comenzar a familiarizarnos con las pruebas unitarias, ya que:
+
+Tienen una función clara y específica
+Operan con entradas y salidas predecibles
+No suelen tener dependencias complejas
+Los pipes son elementos funcionales puros que transforman datos sin efectos secundarios, lo que facilita su verificación mediante pruebas unitarias.
+
+Documentación de Spectator como referencia
+Spectator proporciona una documentación completa que sirve como guía para escribir pruebas para diferentes elementos de Angular. En la sección específica de "test in pipes", encontramos ejemplos y plantillas (boilerplate) que facilitan enormemente la escritura de pruebas.
+
+Además del sitio oficial, el repositorio de GitHub de Spectator contiene numerosos ejemplos prácticos que pueden ser útiles para casos particulares o escenarios complejos. Estos ejemplos son valiosos para aprender cómo probar diferentes funcionalidades de Angular.
+
+// Ejemplo de estructura de prueba para un componente con focus
+// Tomado del repositorio de Spectator
+// Este tipo de ejemplos sirven como referencia para nuestras propias pruebas
+¿Cómo implementar pruebas para un pipe con Spectator?
+Vamos a crear una prueba para un pipe llamado "ReversePipe", que invierte el orden de los caracteres en un string. Por ejemplo, si le pasamos "Nicolás", nos devolverá "sálociN".
+
+Configuración inicial del archivo de prueba
+Primero, creamos un archivo con el mismo nombre que nuestro pipe pero con la extensión .spec.ts:
+
+import { SpectatorPipe, createPipeFactory } from '@ngneat/spectator/jest';
+import { ReversePipe } from './reverse.pipe';
+
+describe('ReversePipe', () => {
+  let spectator: SpectatorPipe<ReversePipe>;
+  const createPipe = createPipeFactory(ReversePipe);
+
+  beforeEach(() => {
+    spectator = createPipe();
+  });
+
+  it('should transform a string to its reverse', () => {
+    spectator.element.innerHTML = 'Nicolas' + ' | ' + 'reverse';
+    expect(spectator.element).toHaveText('salociN');
+  });
+});
+Aspectos importantes a considerar:
+
+Es crucial importar Spectator desde /jest si estamos utilizando Jest como framework de pruebas. De lo contrario, por defecto apuntará a Jasmine.
+
+La variable spectator nos permite acceder al pipe como si estuviéramos en un template de Angular, lo que hace que las pruebas sean más intuitivas.
+
+El método toHaveText() es uno de los muchos matchers disponibles en Jest para verificar el resultado esperado.
+
+Ejecutando las pruebas con cobertura
+Para ejecutar nuestras pruebas y obtener un informe de cobertura, utilizamos el comando:
+
+ng test --coverage
+Este comando nos mostrará qué porcentaje de nuestro código está cubierto por pruebas. En el caso de nuestro pipe, deberíamos ver una cobertura del 100% si la prueba está correctamente implementada.
+
+¿Es suficiente con una sola prueba?
+Aunque el informe de cobertura pueda mostrar un 100%, esto no significa necesariamente que nuestro código esté completamente probado. El informe solo nos indica qué líneas de código se han ejecutado durante las pruebas, pero no evalúa la calidad o exhaustividad de los casos de prueba.
+
+Para un testing más robusto, deberíamos considerar múltiples escenarios:
+
+¿Qué sucede si enviamos un string vacío?
+¿Cómo se comporta el pipe con números o caracteres especiales?
+¿Maneja correctamente los casos límite?
+Una buena práctica es incluir varios casos de prueba que cubran diferentes escenarios y posibles entradas para asegurar que nuestro pipe funcione correctamente en todas las situaciones.
+
+Ventajas de usar Spectator para pruebas
+Spectator simplifica significativamente la escritura de pruebas en Angular:
+
+Reduce el código boilerplate necesario
+Hace que las pruebas sean más legibles
+Proporciona una API intuitiva para interactuar con los elementos
+Estas ventajas hacen que el proceso de testing sea más eficiente y menos propenso a errores.
+
+Automatización de pruebas con inteligencia artificial
+Una tendencia emergente es el uso de herramientas de IA como Cursor AI o GitHub Copilot para generar pruebas unitarias automáticamente. Estas herramientas pueden analizar nuestro código y sugerir casos de prueba relevantes, lo que acelera el proceso de desarrollo.
+
+La IA está transformando la forma en que escribimos pruebas, permitiéndonos generar casos de prueba de manera más eficiente y completa.
+
+Las pruebas unitarias son una parte fundamental del desarrollo de software de calidad. Dominar las técnicas de testing para pipes en Angular con Spectator es un excelente primer paso para construir aplicaciones más robustas y confiables. ¿Has implementado pruebas para tus pipes? Comparte tu experiencia en los comentarios.
+
+
+
+
+
+import { SpectatorPipe, createPipeFactory } from '@ngneat/spectator/jest';
+import { ReversePipe } from './reverse.pipe';
+
+
+describe('ReversePipe', () => {
+    let spectator: SpectatorPipe<ReversePipe>;
+    const createPipe = createPipeFactory(ReversePipe);
+
+    it('should transform a string to its reverse', () => {
+      //spectator.element.innerHTML = 'Hola' + ' | ' + 'reverse';
+      spectator = createPipe(`{{ 'Hola' | reverse }}`);
+      expect(spectator.element).toHaveText('aloH');
+    });
+  });
