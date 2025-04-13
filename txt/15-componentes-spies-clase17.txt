@@ -1,0 +1,79 @@
+Resumen
+
+El espionaje en el mundo de las pruebas unitarias es una técnica fundamental para verificar el comportamiento de nuestros componentes. Mediante esta estrategia, podemos rastrear cuándo se llama un evento, cuántas veces y con qué parámetros, lo que nos permite validar que nuestras aplicaciones funcionan exactamente como esperamos. Dominar estas técnicas nos ayudará a crear pruebas más robustas y a detectar errores antes de que lleguen a producción.
+
+¿Qué es el espionaje (spying) en pruebas unitarias?
+El espionaje o "spying" en el contexto de pruebas unitarias es una técnica que nos permite monitorear el comportamiento de funciones, métodos o eventos. Básicamente, podemos "espiar" cuándo una función ha sido llamada, cuántas veces y con qué parámetros.
+
+En clases anteriores, ya habíamos implementado esta técnica con el servicio MetaTagService, donde creamos una suplantación del servicio real y, mediante el uso de jest.fn(), pudimos rastrear sus llamadas. Ahora, aplicaremos esta misma estrategia para espiar elementos específicos de nuestros componentes.
+
+El patrón de las tres A en testing
+Cuando escribimos pruebas unitarias, es recomendable seguir el patrón de las tres A:
+
+Arrange (Preparar): Preparamos todo el entorno necesario para la prueba, incluyendo la creación de espías.
+Act (Actuar): Ejecutamos la acción que queremos probar.
+Assert (Verificar): Comprobamos si los resultados obtenidos coinciden con nuestras expectativas.
+Este patrón nos ayuda a estructurar nuestras pruebas de manera clara y ordenada, facilitando su mantenimiento y comprensión.
+
+¿Cómo implementar espías en componentes Angular?
+Para ilustrar cómo implementar espías en componentes, vamos a crear una prueba para la función addToCart de nuestro componente. Esta función debe emitir un valor con los datos del producto actual cuando se ejecuta.
+
+Creando un espía para el método emit
+A diferencia de los servicios que se inyectan como dependencias, los @Output no se inyectan de la misma manera. Por lo tanto, necesitamos una estrategia diferente para espiarlos:
+
+// Creamos un espía para el método emit del output addToCart
+const emitSpy = jest.spyOn(component.addToCart, 'emit');
+
+// Renderizamos el componente
+spectator.detectChanges();
+
+// Simulamos un clic en el botón
+spectator.click('add-to-cart-button');
+
+// Verificamos que emit fue llamado con el producto
+expect(emitSpy).toHaveBeenCalledWith(product);
+Es importante notar que estamos siguiendo la convención de nombrar nuestro espía con el nombre de la función que queremos espiar seguido de "Spy" (emitSpy). Esto hace que nuestro código sea más legible y mantenible.
+
+Probando la interacción del usuario
+Una mejor práctica es probar cómo interactúa el usuario con nuestro componente, en lugar de llamar directamente a los métodos:
+
+it('debería emitir un producto cuando el botón es clickeado', () => {
+  // Arrange (Preparar)
+  const emitSpy = jest.spyOn(component.addToCart, 'emit');
+  spectator.detectChanges();
+  
+  // Act (Actuar)
+  spectator.click('add-to-cart-button');
+  
+  // Assert (Verificar)
+  expect(emitSpy).toHaveBeenCalledWith(product);
+});
+Esta aproximación es más robusta porque:
+
+Prueba la interacción real del usuario: Verifica que el botón existe y que al hacer clic en él se desencadena la acción esperada.
+Detecta cambios en la estructura: Si alguien elimina el evento de clic del botón, la prueba fallará.
+Simula el uso real: Refleja cómo los usuarios interactúan con la aplicación.
+¿Por qué es importante probar desde la perspectiva del usuario?
+Cuando escribimos pruebas para componentes, es fundamental pensar en cómo los usuarios interactúan con ellos. En lugar de probar directamente los métodos internos, debemos simular las acciones que realizaría un usuario:
+
+Si el usuario hace clic en un botón, nuestra prueba debe hacer clic en ese botón.
+Si el usuario selecciona una opción de un dropdown, nuestra prueba debe seleccionar esa opción.
+Si el usuario completa un formulario, nuestra prueba debe completar ese formulario.
+Esta aproximación nos permite detectar problemas que afectarían a los usuarios reales, como:
+
+Botones que no responden a clics
+Elementos de interfaz que no están correctamente conectados a sus funciones
+Flujos de usuario interrumpidos por errores en la lógica
+Ejemplo práctico
+En nuestro ejemplo, en lugar de llamar directamente a component.addToCart.emit(), simulamos un clic en el botón que tiene el atributo data-testid="add-to-cart-button":
+
+// Mejor aproximación
+spectator.click('add-to-cart-button');
+
+// En lugar de
+component.addToCart.emit(product);
+Si alguien elimina el evento de clic del botón, nuestra prueba fallará, alertándonos del problema antes de que llegue a producción.
+
+El testing desde la perspectiva del usuario nos ayuda a crear aplicaciones más robustas y a detectar problemas que podrían pasar desapercibidos con pruebas más tradicionales centradas en la implementación.
+
+En la próxima clase, abordaremos cómo escribir pruebas para componentes que tienen inyecciones de dependencias, lo que nos permitirá completar nuestro conocimiento sobre pruebas unitarias en Angular.
