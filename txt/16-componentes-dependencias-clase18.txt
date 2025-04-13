@@ -1,0 +1,98 @@
+Resumen
+
+La inyección de dependencias es un concepto fundamental en Angular que permite crear componentes más modulares y fáciles de mantener. Sin embargo, cuando llega el momento de realizar pruebas unitarias, estos componentes con múltiples dependencias pueden representar un desafío. Dominar las técnicas adecuadas para probar componentes con inyecciones es esencial para garantizar la calidad y robustez de nuestras aplicaciones.
+
+¿Cómo probar componentes con inyección de dependencias?
+Cuando trabajamos con componentes en Angular, es común encontrarnos con situaciones donde estos dependen de varios servicios. Mientras que algunos componentes son sencillos y no tienen inyecciones, otros pueden tener tres, cuatro o incluso más dependencias que necesitan ser consideradas durante las pruebas.
+
+En nuestro ejemplo anterior, trabajamos con el ProductComponent, un componente relativamente simple sin inyecciones directas. Ahora, vamos a enfocarnos en el HeaderComponent, que tiene una inyección hacia el CartService.
+
+Configuración inicial para pruebas de componentes con inyecciones
+Para comenzar a probar un componente con inyecciones, necesitamos crear el archivo de prueba correspondiente:
+
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HeaderComponent } from './header.component';
+import { createRoutingFactory, SpectatorRouting } from '@ngneat/spectator';
+import { CartService } from '@shared/services/cart.service';
+
+describe('HeaderComponent', () => {
+  let spectator: SpectatorRouting<HeaderComponent>;
+  const createComponent = createRoutingFactory({
+    component: HeaderComponent,
+    providers: [CartService]
+  });
+
+  beforeEach(() => {
+    spectator = createComponent();
+  });
+
+  it('should create', () => {
+    expect(spectator.component).toBeTruthy();
+  });
+});
+En este caso, estamos utilizando createRoutingFactory porque el componente utiliza elementos del router como routerLink y routerLinkActive. Es importante notar que gracias a los componentes standalone (predeterminados desde Angular 19), no necesitamos preocuparnos por importar manualmente todos los módulos que el componente utiliza internamente.
+
+Pruebas de integración vs. pruebas con mocks
+Existen dos enfoques principales para probar componentes con inyecciones:
+
+Pruebas de integración: Inyectamos el servicio real y probamos cómo el componente interactúa con él.
+Pruebas con mocks: Creamos una versión simulada del servicio para aislar completamente el componente.
+En el ejemplo anterior, estamos realizando una prueba de integración al inyectar directamente el CartService. Esto nos permite verificar que el componente y el servicio funcionan correctamente juntos, pero tiene la desventaja de que estamos probando más de una unidad a la vez.
+
+Mejorando nuestras pruebas con data-testid
+Al generar pruebas con herramientas de IA como Cursor, es común que se utilicen selectores CSS para encontrar elementos en el DOM:
+
+it('should show items and total', () => {
+  // Agregar productos al carrito
+  const product = generateMockProduct(100);
+  spectator.component.cart.addToCart(product);
+  spectator.component.cart.addToCart(product);
+  spectator.detectChanges();
+  
+  // Verificar que se muestre el total correcto
+  const totalElement = spectator.query('[data-testid="total"]');
+  expect(totalElement).toHaveText('2 items: $200');
+});
+Es recomendable utilizar atributos data-testid en lugar de clases CSS para seleccionar elementos en las pruebas. Esto hace que nuestras pruebas sean más robustas frente a cambios en el diseño:
+
+<span data-testid="total">{{ cart.items.length }} items: ${{ cart.total }}</span>
+También es preferible utilizar los matchers proporcionados por Spectator como toHaveText() en lugar de manipular directamente el contenido del elemento.
+
+Consideraciones importantes para pruebas efectivas
+Utiliza data-testid: Agrega atributos data-testid a los elementos que necesitas seleccionar en tus pruebas.
+Aprovecha los matchers de Spectator: Usa métodos como toHaveText() o byTestId() para hacer tus pruebas más legibles y robustas.
+Considera el aislamiento: Decide si necesitas una prueba de integración o si es mejor utilizar mocks para aislar el componente.
+Revisa las pruebas generadas por IA: Si utilizas herramientas como Cursor para generar pruebas, revisa y mejora los selectores y assertions para seguir las mejores prácticas.
+¿Cómo manejar componentes con múltiples dependencias?
+Para componentes más complejos con múltiples inyecciones, el enfoque de mocking se vuelve aún más importante. En estos casos, necesitamos crear mocks para cada una de las dependencias:
+
+const mockCartService = {
+  items: [],
+  total: 0,
+  addToCart: jasmine.createSpy('addToCart')
+};
+
+const createComponent = createRoutingFactory({
+  component: HeaderComponent,
+  providers: [
+    { provide: CartService, useValue: mockCartService }
+  ]
+});
+Este enfoque nos permite controlar completamente el comportamiento de las dependencias y aislar nuestras pruebas al componente específico que estamos probando.
+
+¿Cómo probar la interacción entre componentes?
+En algunos casos, necesitamos probar cómo un componente interactúa con otros componentes que importa. Para estos escenarios, también podemos crear mocks de los componentes secundarios:
+
+import { MockComponent } from 'ng-mocks';
+import { SearchComponent } from '../search/search.component';
+
+const createComponent = createRoutingFactory({
+  component: HeaderComponent,
+  providers: [CartService],
+  declarations: [
+    MockComponent(SearchComponent)
+  ]
+});
+Sin embargo, con los componentes standalone, este enfoque puede variar ligeramente, ya que los componentes gestionan sus propias importaciones.
+
+Las pruebas unitarias de componentes con inyecciones de dependencias son fundamentales para garantizar la calidad de nuestras aplicaciones Angular. Dominar las técnicas adecuadas nos permite crear pruebas robustas que verifican el comportamiento de nuestros componentes de manera aislada y confiable. ¿Has tenido experiencia probando componentes con múltiples dependencias? Comparte tus estrategias y desafíos en los comentarios.
