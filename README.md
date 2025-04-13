@@ -12,6 +12,7 @@
 
 1. npm install @ngneat/spectator --save-dev
 2. npm install @faker-js/faker --save-dev
+3. npm i jest-fetch-mock
 
 
 

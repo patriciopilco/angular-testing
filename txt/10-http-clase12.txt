@@ -1,0 +1,117 @@
+Resumen
+
+La prueba de servicios HTTP en Angular es un aspecto fundamental del desarrollo de aplicaciones robustas. Cuando trabajamos con peticiones a APIs externas, necesitamos asegurarnos de que nuestro código funcione correctamente sin depender de conexiones reales a servidores, lo que nos permite tener un entorno controlado y eficiente para nuestras pruebas unitarias.
+
+¿Cómo probar servicios con dependencias HTTP en Angular?
+Cuando desarrollamos aplicaciones en Angular, frecuentemente utilizamos el servicio HttpClient para realizar peticiones a APIs. Sin embargo, en un entorno de pruebas unitarias, no queremos realizar conexiones reales a servidores externos por varias razones:
+
+Consumiría recursos innecesarios
+Podría causar problemas de rendimiento en el servidor (incluso potenciales ataques de denegación de servicio)
+Las pruebas dependerían de factores externos, haciéndolas menos confiables
+Para solucionar esto, Angular y Spectator proporcionan herramientas específicas para probar servicios HTTP sin realizar peticiones reales.
+
+Configuración del entorno de pruebas para HTTP
+En lugar de utilizar el método createServiceFactory que vimos anteriormente, para servicios HTTP utilizaremos createHttpFactory. Esta utilidad nos permite:
+
+Suplantar el servicio HttpClient
+Verificar que las peticiones se realicen correctamente
+Simular respuestas de la API
+Un ejemplo básico de configuración sería:
+
+import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/jest';
+import { ProductService } from './product.service';
+
+describe('ProductService', () => {
+  let spectator: SpectatorHttp<ProductService>;
+  const createHttp = createHttpFactory(ProductService);
+
+  beforeEach(() => {
+    spectator = createHttp();
+  });
+
+  // Aquí irían los tests
+});
+Verificación de peticiones HTTP
+Una vez configurado el entorno, podemos probar que nuestro servicio realice las peticiones correctamente. Por ejemplo, para verificar un método get1 que obtiene un producto por ID:
+
+it('debería obtener un producto por ID', () => {
+  const productId = '1';
+  spectator.service.get1(productId).subscribe();
+  
+  spectator.expectOne(`${environment.API_URL}/api/v1/products/${productId}`, HttpMethod.GET);
+});
+En este test estamos verificando que:
+
+Se realice una petición a la URL correcta
+El método HTTP utilizado sea GET
+Simulación de respuestas con flush
+Una característica poderosa de las pruebas HTTP es la capacidad de simular respuestas del servidor. Esto se logra con el método flush:
+
+it('debería devolver el producto cuando se llama a get1', () => {
+  const productId = '1';
+  const mockProduct = { id: '1', name: 'Product 1' };
+  
+  let result;
+  spectator.service.get1(productId).subscribe(product => {
+    result = product;
+  });
+  
+  const req = spectator.expectOne(`${environment.API_URL}/api/v1/products/${productId}`, HttpMethod.GET);
+  req.flush(mockProduct);
+  
+  expect(result).toEqual(mockProduct);
+});
+En este ejemplo:
+
+Llamamos al método del servicio
+Verificamos que se haga la petición correcta
+Simulamos una respuesta con flush
+Comprobamos que el servicio procese correctamente la respuesta
+¿Cómo probar diferentes escenarios HTTP?
+Es importante probar no solo los casos exitosos, sino también los escenarios de error y casos especiales.
+
+Pruebas con parámetros de consulta
+Si nuestro servicio permite filtrar productos por categoría, podríamos tener un test así:
+
+it('debería filtrar productos por categoría', () => {
+  const categoryId = '10';
+  
+  spectator.service.getProducts({ categoryId }).subscribe();
+  
+  spectator.expectOne(`${environment.API_URL}/api/v1/products?categoryId=${categoryId}`, HttpMethod.GET);
+});
+Simulación de errores HTTP
+Para probar cómo nuestro servicio maneja los errores, podemos simular respuestas con códigos de error:
+
+it('debería manejar errores 404', () => {
+  const productId = '999';
+  
+  let errorResponse;
+  spectator.service.get1(productId).subscribe(
+    () => {},
+    error => { errorResponse = error; }
+  );
+  
+  const req = spectator.expectOne(`${environment.API_URL}/api/v1/products/${productId}`, HttpMethod.GET);
+  req.flush(null, { status: 404, statusText: 'Not Found' });
+  
+  expect(errorResponse.status).toBe(404);
+});
+Es importante notar que no debemos usar req.error() como podría sugerir alguna IA, sino req.flush(null, { status: 404, statusText: 'Not Found' }) para simular respuestas de error.
+
+Mejorando nuestros servicios a través de las pruebas
+Las pruebas no solo verifican que nuestro código funcione correctamente, sino que también nos ayudan a identificar posibles mejoras. Por ejemplo, al probar un método que acepta parámetros opcionales:
+
+// Antes
+getProducts(params: any) {
+  return this.http.get<Product[]>(`${environment.API_URL}/api/v1/products`, { params });
+}
+
+// Mejorado
+getProducts(params?: any) {
+  const options = params ? { params } : {};
+  return this.http.get<Product[]>(`${environment.API_URL}/api/v1/products`, options);
+}
+Esta mejora evita enviar un objeto vacío innecesario cuando no hay parámetros.
+
+Las pruebas unitarias para servicios HTTP en Angular son fundamentales para garantizar la calidad y robustez de nuestras aplicaciones. Con las herramientas adecuadas, podemos simular cualquier escenario sin depender de servicios externos, lo que hace nuestras pruebas más rápidas, confiables y efectivas. ¿Has implementado pruebas para tus servicios HTTP? Comparte tu experiencia en los comentarios.

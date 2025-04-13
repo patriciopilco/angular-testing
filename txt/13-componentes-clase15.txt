@@ -1,0 +1,90 @@
+Resumen
+
+La creación de pruebas unitarias para componentes en Angular es una habilidad fundamental para cualquier desarrollador que busque construir aplicaciones robustas y mantenibles. Aunque puede parecer intimidante al principio, con las herramientas adecuadas y un enfoque sistemático, podemos simplificar este proceso significativamente.
+
+¿Cómo realizar pruebas unitarias en componentes de Angular?
+Los componentes representan uno de los elementos más complejos para probar en Angular debido a la interacción de múltiples elementos: templates, inyección de dependencias, interactividad y más. Vamos a explorar cómo abordar estas pruebas de manera efectiva utilizando Spectator, una biblioteca que simplifica enormemente este proceso.
+
+Configuración inicial con Spectator
+Spectator proporciona herramientas específicas para probar componentes en Angular, reduciendo significativamente el código repetitivo (boilerplate). Para comenzar a probar un componente, necesitamos:
+
+Importar las funciones necesarias de Spectator
+Crear un entorno de prueba adecuado para nuestro componente
+Configurar un ciclo beforeEach para reiniciar el componente en cada caso de prueba
+Spectator ofrece dos funciones principales para crear el entorno de prueba:
+
+createComponentFactory: Para componentes estándar
+createRoutingFactory: Para componentes que utilizan funcionalidades de routing (como routerLink)
+import { createRoutingFactory, SpectatorRouting } from '@ngneat/spectator/jest';
+import { ProductComponent } from './product.component';
+
+describe('ProductComponent', () => {
+  let spectator: SpectatorRouting<ProductComponent>;
+  const createComponent = createRoutingFactory({
+    component: ProductComponent,
+    detectChanges: false
+  });
+
+  beforeEach(() => {
+    spectator = createComponent();
+  });
+
+  it('should create', () => {
+    expect(spectator.component).toBeTruthy();
+  });
+});
+Manejo de inputs requeridos en componentes
+Un desafío común al probar componentes es manejar los inputs requeridos. Si un componente tiene un input obligatorio, la prueba fallará si no proporcionamos ese valor. Existen dos enfoques principales para resolver esto:
+
+Proporcionar inputs durante la creación del componente:
+const createComponent = createRoutingFactory({
+  component: ProductComponent,
+  props: {
+    product: createFakeProduct() // Función que genera un producto de prueba
+  }
+});
+Configurar inputs después de la creación pero antes de la detección de cambios:
+const createComponent = createRoutingFactory({
+  component: ProductComponent,
+  detectChanges: false // Desactivamos la detección automática de cambios
+});
+
+beforeEach(() => {
+  spectator = createComponent();
+  spectator.setInput('product', createFakeProduct());
+  spectator.detectChanges(); // Activamos manualmente la detección de cambios
+});
+Solución para componentes con alias en inputs
+Un problema específico surge cuando trabajamos con componentes que utilizan alias para sus inputs. Spectator tiene una limitación al reconocer estos alias durante la creación del componente. La solución recomendada es:
+
+Desactivar la detección automática de cambios (detectChanges: false)
+Utilizar setInput() después de crear el componente, que sí reconoce correctamente los alias
+Activar manualmente la detección de cambios cuando sea necesario
+Ejemplo con un input que usa alias:
+
+// En el componente
+@Input({ required: true, alias: 'product' }) product$: Product;
+
+// En la prueba
+beforeEach(() => {
+  spectator = createComponent();
+  spectator.setInput('product', createFakeProduct()); // Funciona con el alias
+  spectator.detectChanges();
+});
+Beneficios de controlar manualmente la detección de cambios
+Desactivar la detección automática de cambios (detectChanges: false) no solo resuelve el problema de los alias, sino que también proporciona mayor control sobre el ciclo de pruebas:
+
+Mayor control: Puedes decidir exactamente cuándo activar la detección de cambios
+Preparación más flexible: Permite configurar el componente completamente antes de renderizarlo
+Pruebas más precisas: Facilita probar estados intermedios del componente
+Esta práctica es recomendable incluso para componentes sin alias, ya que proporciona un control más granular sobre el proceso de prueba.
+
+¿Cómo acceder y probar el DOM renderizado?
+Una vez configurado el entorno de prueba, el siguiente paso es acceder al DOM renderizado para verificar que el componente se comporta como esperamos. Spectator proporciona métodos para:
+
+Consultar elementos del DOM
+Simular interacciones del usuario (clics, entradas de formulario)
+Verificar cambios en la interfaz de usuario
+Estos aspectos son fundamentales para pruebas completas de componentes y se explorarán en detalle en las siguientes secciones.
+
+Las pruebas unitarias de componentes en Angular pueden parecer complejas al principio, pero con herramientas como Spectator y un enfoque sistemático, se convierten en una parte manejable y valiosa del proceso de desarrollo. Dominar estas técnicas te permitirá crear aplicaciones más robustas y mantenibles, reduciendo la probabilidad de errores y facilitando futuras modificaciones. ¿Has implementado pruebas unitarias en tus proyectos de Angular? Comparte tu experiencia en los comentarios.

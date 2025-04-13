@@ -1,0 +1,102 @@
+Resumen
+
+La suplantación de APIs globales en pruebas unitarias es un desafío común en el desarrollo de software moderno. Cuando trabajamos con funciones como fetch, window.location o geolocation, necesitamos estrategias efectivas para simular su comportamiento durante las pruebas sin realizar llamadas reales. Este enfoque no solo mejora la velocidad de nuestras pruebas, sino que también garantiza resultados consistentes independientemente del entorno de ejecución.
+
+¿Cómo manejar APIs globales en pruebas unitarias?
+Cuando trabajamos con pruebas unitarias, nos enfrentamos al reto de probar código que utiliza APIs globales como fetch. Estas APIs presentan un desafío particular porque:
+
+No se pueden inyectar fácilmente como dependencias
+Son parte del ecosistema del navegador o Node.js
+Realizan operaciones reales que no queremos ejecutar durante las pruebas
+El problema principal es que no queremos hacer llamadas reales a APIs externas o solicitar recursos del sistema durante nuestras pruebas unitarias. Por ejemplo, no tiene sentido realizar una solicitud GPS real cada vez que ejecutamos una prueba que involucra geolocalización.
+
+Para solucionar esto, necesitamos crear suplantaciones (mocks) de estas APIs globales, ya sea manualmente o con la ayuda de librerías especializadas.
+
+Implementando mocks para fetch con fetch-mock
+Una solución efectiva para este problema es utilizar librerías como fetch-mock. Vamos a ver cómo implementarla:
+
+Primero, instalamos la librería:
+npm install fetch-mock --save-dev
+Luego, configuramos nuestro archivo de prueba para utilizar esta librería:
+import fetchMock from 'fetch-mock';
+import { enableFetchMocks } from 'jest-fetch-mock';
+
+// Habilitamos los mocks de fetch
+enableFetchMocks();
+
+describe('Pruebas de servicio', () => {
+  // Limpiamos los mocks después de cada prueba
+  afterEach(() => {
+    fetchMock.resetMocks();
+  });
+
+  it('debería obtener datos correctamente', async () => {
+    // Configuramos el mock para responder con datos específicos
+    fetchMock.mockResponse(JSON.stringify({ data: 'mocked data' }));
+    
+    // Realizamos la llamada a nuestra función que usa fetch
+    // ...
+  });
+});
+Es importante destacar que estamos habilitando los mocks de forma explícita en cada archivo de prueba, en lugar de habilitarlos globalmente. Esto nos da más control y claridad sobre dónde se están utilizando.
+
+¿Cómo simular diferentes escenarios de respuesta?
+Una de las ventajas de usar librerías como fetch-mock es la facilidad para simular diferentes escenarios de respuesta, incluyendo casos de éxito y error.
+
+Simulando respuestas exitosas
+Para simular una respuesta exitosa, podemos usar el método mockResponse:
+
+it('debería manejar una respuesta exitosa', async () => {
+  // Simulamos una respuesta exitosa
+  fetchMock.mockResponse(JSON.stringify({ 
+    data: 'mocked data',
+    status: 'success' 
+  }));
+  
+  // Ahora cualquier llamada a fetch devolverá esta respuesta
+  const response = await fetch('/api/data');
+  const data = await response.json();
+  
+  // Verificamos que nuestra función maneje correctamente la respuesta
+  expect(data.status).toBe('success');
+});
+Simulando errores y rechazos
+Para simular errores, podemos usar el método mockReject:
+
+it('debería manejar errores de red', async () => {
+  // Simulamos un error de red
+  fetchMock.mockReject(new Error('Network error'));
+  
+  // Verificamos que nuestra función maneje correctamente el error
+  await expect(fetch('/api/data')).rejects.toThrow('Network error');
+});
+También podemos simular respuestas con formato JSON inválido:
+
+it('debería manejar JSON inválido', async () => {
+  // Simulamos una respuesta con JSON inválido
+  fetchMock.mockResponse('invalid json');
+  
+  // Verificamos que nuestra función maneje correctamente el error
+  await expect(fetch('/api/data').then(res => res.json()))
+    .rejects.toThrow('Invalid JSON');
+});
+¿Qué problemas comunes pueden surgir con los mocks?
+Durante la implementación de mocks, pueden surgir varios problemas que debemos tener en cuenta:
+
+Conflictos de tipos y definiciones
+Un problema común es el conflicto entre diferentes definiciones de tipos, especialmente cuando se migra entre frameworks de pruebas. Por ejemplo, si anteriormente usabas Jasmine y ahora estás usando Jest, podrías tener residuos de tipos que causan conflictos:
+
+// Esto podría fallar si tienes tipos de Jasmine instalados
+expect(fetch('/api/data')).rejects.toThrow('Network error');
+La solución es asegurarte de desinstalar completamente las dependencias del framework anterior:
+
+npm uninstall @types/jasmine jasmine-core karma karma-coverage
+Limpieza después de cada prueba
+Es crucial limpiar los mocks después de cada prueba para evitar que el estado de una prueba afecte a las siguientes:
+
+afterEach(() => {
+  fetchMock.resetMocks();
+});
+Esta práctica garantiza que cada prueba comience con un estado limpio, lo que hace que nuestras pruebas sean más predecibles y fáciles de depurar.
+
+La suplantación de APIs globales es una técnica esencial en el arsenal de cualquier desarrollador que trabaje con pruebas unitarias. Al dominar estas técnicas, podrás crear pruebas más robustas, rápidas y confiables que no dependan de servicios externos o comportamientos del sistema. ¿Has tenido experiencias con otros métodos para mockear APIs globales? Comparte tus experiencias en los comentarios y sigamos aprendiendo juntos.

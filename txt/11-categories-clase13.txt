@@ -1,0 +1,103 @@
+Resumen
+
+La integración de pruebas unitarias para servicios que utilizan fetch en JavaScript es fundamental para garantizar la calidad de nuestras aplicaciones. Dominar estas técnicas nos permite validar el comportamiento de nuestros servicios sin depender de conexiones reales a servidores, lo que resulta en pruebas más rápidas y confiables.
+
+¿Cómo probar servicios que utilizan fetch en JavaScript?
+Cuando trabajamos con servicios en JavaScript que realizan peticiones HTTP, es común encontrarnos con implementaciones que utilizan tanto el cliente HTTP de Angular como el método nativo fetch. Para probar estos servicios correctamente, necesitamos aplicar técnicas de mocking diferentes según el método utilizado.
+
+En nuestro proyecto, tenemos un servicio de categorías que implementa ambos enfoques:
+
+// Método que utiliza HttpClient (Observable)
+getAll() {
+  return this.http.get<Category[]>(this.apiUrl);
+}
+
+// Método que utiliza fetch (Promise)
+getAllPromise() {
+  return fetch(this.apiUrl)
+    .then(response => response.json());
+}
+Para probar estos servicios adecuadamente, necesitamos crear mocks que simulen el comportamiento de estas funciones sin realizar peticiones reales.
+
+Preparando los mocks para nuestras pruebas
+Antes de comenzar con las pruebas del servicio, es importante tener datos de prueba que podamos utilizar. Para ello, creamos un archivo de mocks para las categorías:
+
+import { Category } from './category.model';
+
+export const generateCategory = (data?: Partial<Category>): Category => {
+  return {
+    id: 1,
+    name: 'Fake Category',
+    ...data
+  };
+};
+Este enfoque nos permite reutilizar código y mantener la consistencia en nuestras pruebas. Además, podemos personalizar los datos según las necesidades específicas de cada prueba.
+
+Generando pruebas con ayuda de IA
+Una estrategia interesante es utilizar la IA para generar pruebas basándose en archivos existentes. Si ya tenemos pruebas para un servicio similar (como ProductService), podemos pedirle a la IA que genere pruebas para nuestro CategoryService siguiendo el mismo patrón.
+
+Este enfoque es especialmente útil cuando los servicios siguen patrones similares, como operaciones CRUD (Crear, Leer, Actualizar, Eliminar). La IA puede adaptar las pruebas existentes al nuevo contexto, ahorrando tiempo y manteniendo la consistencia.
+
+Probando métodos que utilizan fetch
+El desafío principal surge al probar métodos que utilizan fetch, ya que este es un método global del navegador o de Node.js, no una dependencia que podamos inyectar fácilmente.
+
+La solución generada por la IA incluye un enfoque de mocking global:
+
+describe('getAll with Promise', () => {
+  it('should return a list of categories', async () => {
+    // Mock global fetch
+    global.fetch = jest.fn(() => 
+      Promise.resolve({
+        json: () => Promise.resolve(fakeCategories)
+      })
+    ) as jest.Mock;
+    
+    const result = await service.getAllPromise();
+    expect(result).toEqual(fakeCategories);
+  });
+});
+Aunque este enfoque funciona, puede resultar complicado y difícil de mantener. Es preferible utilizar librerías especializadas que simplifiquen el proceso.
+
+¿Qué herramientas facilitan el mocking de fetch en pruebas unitarias?
+Una mejor alternativa para probar servicios que utilizan fetch es utilizar la librería jest-fetch-mock. Esta librería está diseñada específicamente para facilitar el mocking de fetch en pruebas con Jest.
+
+Para implementarla, primero debemos instalarla:
+
+npm install --save-dev jest-fetch-mock
+Con esta librería, nuestras pruebas se vuelven más limpias y mantenibles:
+
+import fetchMock from 'jest-fetch-mock';
+
+describe('CategoryService', () => {
+  beforeAll(() => {
+    fetchMock.enableMocks();
+  });
+  
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
+  
+  it('should return categories when getAllPromise is called', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(fakeCategories));
+    
+    const result = await service.getAllPromise();
+    expect(result).toEqual(fakeCategories);
+    expect(fetchMock).toHaveBeenCalledWith(service.apiUrl);
+  });
+});
+Este enfoque tiene varias ventajas:
+
+Código más limpio y legible
+API intuitiva para configurar respuestas y errores
+Facilidad para verificar que fetch fue llamado con los parámetros correctos
+Reutilización más sencilla en diferentes pruebas
+¿Por qué es importante el mocking en pruebas unitarias?
+El mocking es una técnica esencial en las pruebas unitarias porque nos permite:
+
+Aislar el código que estamos probando de sus dependencias externas
+Controlar el comportamiento de esas dependencias para probar diferentes escenarios
+Acelerar la ejecución de las pruebas al evitar llamadas reales a servicios externos
+Aumentar la confiabilidad de las pruebas al eliminar factores externos
+En el caso de servicios que realizan peticiones HTTP, el mocking nos permite simular diferentes respuestas del servidor sin necesidad de una conexión real, lo que hace nuestras pruebas más rápidas y predecibles.
+
+Las pruebas unitarias bien implementadas con mocking adecuado son fundamentales para mantener la calidad del código a medida que el proyecto crece. Te invitamos a compartir en los comentarios tus experiencias con estas técnicas y cualquier otra herramienta que hayas encontrado útil para el testing de servicios en JavaScript.
