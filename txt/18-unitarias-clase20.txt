@@ -1,0 +1,107 @@
+Resumen
+
+La creación de pruebas efectivas para componentes complejos es fundamental para garantizar la calidad de nuestras aplicaciones Angular. Dominar las técnicas de testing nos permite verificar que nuestros componentes funcionan correctamente en todos los escenarios posibles, incluso aquellos con ciclos de vida complejos o dependencias externas.
+
+¿Cómo mejorar las pruebas de un componente de detalle de producto?
+El componente de detalle de producto que estamos analizando tiene varios elementos importantes que debemos probar:
+
+Una galería de imágenes
+Detalles del producto
+Precio
+Botón de agregar al carrito
+Carrusel de productos relacionados (implementado con un defer)
+Para probar adecuadamente este componente, necesitamos entender su ciclo de vida y cómo interactúa con sus dependencias.
+
+Entendiendo el ciclo de vida del componente
+El componente de detalle de producto tiene una característica importante: realiza una solicitud de datos en el momento de su creación. Esto significa que:
+
+El componente se renderiza
+Durante este proceso, se llama a getOneBySlug del servicio de productos
+Este método devuelve un Observable con los datos del producto
+// Fragmento del componente
+const product = this.productRsc.getOneBySlug(this.slug);
+const cover = product.images[0]; // La primera imagen se usa como cover
+Este comportamiento es crucial para nuestras pruebas, ya que necesitamos simular esta respuesta antes de que el componente se monte.
+
+Configurando el entorno de pruebas
+Para probar correctamente este componente, necesitamos:
+
+Desactivar la detección automática de cambios
+Obtener una referencia al servicio mockeado
+Configurar el valor de retorno para getOneBySlug
+// Configuración básica de la prueba
+const spectator = createComponentFactory({
+  component: ProductDetailComponent,
+  detectChanges: false, // Desactivamos la detección automática
+  providers: [
+    mockProvider(ProductService, {
+      getOneBySlug: jest.fn().mockReturnValue(of(mockProduct))
+    })
+  ]
+});
+
+// Obtenemos el servicio mockeado
+const productService = spectator.inject(ProductService) as SpyObject<ProductService>;
+Probando el cover del producto
+Una vez configurado el entorno, podemos comenzar a probar elementos específicos. Por ejemplo, para probar que el cover muestra la imagen correcta:
+
+it('debería mostrar el producto en cover', () => {
+  // Preparación
+  spectator.setInput('slug', 'mock-product-slug');
+  
+  // Acción
+  spectator.detectChanges();
+  
+  // Verificación
+  const cover = spectator.query<HTMLImageElement>('[data-testid="cover"]');
+  expect(cover?.src).toBe(mockProduct.images[0]);
+});
+El problema del valor por defecto en los mocks
+Cuando trabajamos con componentes que realizan solicitudes durante su inicialización, nos encontramos con un desafío: necesitamos que el mock tenga un valor por defecto antes de que el componente se monte.
+
+La solución es configurar el mockProvider con un valor por defecto para la función que queremos mockear:
+
+// Configuración mejorada con valor por defecto
+const spectator = createComponentFactory({
+  component: ProductDetailComponent,
+  detectChanges: false,
+  providers: [
+    mockProvider(ProductService, {
+      getOneBySlug: jest.fn().mockReturnValue(of(mockProduct))
+    })
+  ]
+});
+Con esta configuración, cuando el componente llame a getOneBySlug durante su inicialización, ya tendrá un valor para devolver.
+
+Ventajas de esta aproximación
+Esta forma de configurar los mocks nos ofrece varias ventajas:
+
+Configurabilidad: Podemos cambiar el valor de retorno en diferentes pruebas
+Valor inicial: El mock tiene un valor por defecto desde el principio
+Funciones de espía: Podemos verificar cuántas veces se llamó al método, con qué parámetros, etc.
+// Verificando que el método fue llamado correctamente
+expect(productService.getOneBySlug).toHaveBeenCalledWith('mock-product-slug');
+expect(productService.getOneBySlug).toHaveBeenCalledTimes(1);
+Mejorando la flexibilidad con setInput
+Para hacer nuestras pruebas más dinámicas, podemos utilizar setInput para cambiar las propiedades del componente:
+
+// Antes de cada prueba podemos configurar un slug diferente
+spectator.setInput('slug', 'product-1');
+spectator.detectChanges();
+
+// Para otra prueba
+spectator.setInput('slug', 'product-2');
+spectator.detectChanges();
+¿Cómo manejar componentes con APIs del navegador?
+En nuestra prueba, nos encontramos con un error relacionado con IntersectionObserver, que es una API del navegador utilizada por el componente defer. Este tipo de problemas son comunes cuando probamos componentes que utilizan APIs nativas.
+
+En la siguiente clase veremos cómo solucionar este problema específico, pero la estrategia general implica mockear las APIs del navegador que nuestros componentes utilizan.
+
+¿Por qué es importante entender el ciclo de vida en las pruebas?
+Entender el ciclo de vida de los componentes es crucial para escribir pruebas efectivas. En nuestro caso, el componente realiza una solicitud durante su inicialización, lo que requiere una configuración especial de nuestros mocks.
+
+Si no hubiéramos entendido este comportamiento, nuestras pruebas habrían fallado porque el mock no tendría un valor para devolver en el momento adecuado.
+
+El testing de componentes Angular requiere un conocimiento profundo tanto de las herramientas de testing como del funcionamiento interno de los componentes. Con la práctica y el entendimiento de estos conceptos, podrás escribir pruebas robustas que garanticen la calidad de tu aplicación.
+
+¿Has tenido problemas similares al probar componentes con ciclos de vida complejos? Comparte tus experiencias y soluciones en los comentarios.

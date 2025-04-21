@@ -1,0 +1,86 @@
+Resumen
+
+La implementación de pruebas unitarias en Angular es fundamental para garantizar la calidad y robustez de nuestras aplicaciones. En esta ocasión, exploraremos cómo manejar componentes con dependencias y el uso del defer para cargar componentes de forma dinámica, así como las soluciones a los errores comunes que podemos encontrar durante el proceso de testing.
+
+¿Cómo probar componentes con dependencias en Angular?
+Cuando trabajamos con componentes que tienen dependencias, como nuestro ProductDetail que depende de ProductService, podemos utilizar un Mock Provider o una suplantación (Mock) de ese servicio. Esto nos permite probar el componente sin necesidad de desatar toda la línea de inyección de dependencias.
+
+Sin embargo, al ejecutar las pruebas podemos encontrarnos con errores en la consola, aunque los tests pasen correctamente. Uno de estos errores comunes está relacionado con la Intersection Observer API.
+
+¿Por qué aparece el error de Intersection Observer API?
+Este error ocurre porque estamos utilizando la directiva defer con el viewport. Angular utiliza internamente la API del navegador Intersection Observer para detectar cuándo un elemento entra en el viewport del usuario y así cargar dinámicamente el componente.
+
+El problema es que en el entorno de pruebas no estamos ejecutando un navegador real, sino un entorno controlado que monta nuestros componentes. Por lo tanto, no tiene acceso a las APIs nativas del navegador como Intersection Observer.
+
+Solución: creando un mock para Intersection Observer API
+Para solucionar este problema, necesitamos crear un mock que suplante la funcionalidad de la Intersection Observer API. Aquí está el código que podemos utilizar:
+
+Object.defineProperty(window, 'IntersectionObserver', {
+  writable: true,
+  configurable: true,
+  value: jest.fn(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+  })),
+});
+Este código reemplaza la API nativa del navegador con una implementación simulada que proporciona los métodos necesarios (observe, unobserve, disconnect). Al implementar este mock, el error desaparecerá y las pruebas seguirán funcionando correctamente.
+
+¿Cómo probar componentes con defer en Angular?
+El uso de defer permite cargar componentes de forma dinámica cuando entran en el viewport del usuario. Sin embargo, en un entorno de pruebas no podemos simular el scroll para activar esta carga. Por lo tanto, necesitamos una forma de probar manualmente estos componentes diferidos.
+
+Configurando el defer para pruebas manuales
+Para probar componentes con defer, podemos modificar nuestro método createComponent para incluir un parámetro adicional:
+
+import { DeferBlockBehavior } from '@angular/core/testing';
+
+// En el método de configuración
+createComponent({
+  defer: DeferBlockBehavior.Manual
+});
+Con esta configuración, podemos controlar manualmente cuándo se cargan los componentes diferidos en nuestras pruebas.
+
+Escribiendo pruebas para componentes diferidos
+Una vez configurado el comportamiento manual del defer, podemos escribir pruebas específicas:
+
+it('debería cargar los productos relacionados', async () => {
+  // Configuración inicial y renderizado del componente
+  fixture.detectChanges();
+  
+  // Activar manualmente la carga del componente diferido
+  await fixture.getDeferBlocks().render();
+  
+  // Detectar cambios nuevamente
+  fixture.detectChanges();
+  
+  // Verificar que el componente se ha cargado correctamente
+  const relatedComponent = fixture.debugElement.query(By.directive(RelatedComponent));
+  expect(relatedComponent).toBeTruthy();
+});
+En este ejemplo:
+
+Primero detectamos los cambios iniciales
+Luego activamos manualmente la renderización de los bloques diferidos
+Detectamos los cambios nuevamente
+Finalmente, verificamos que el componente se haya cargado correctamente
+Es importante destacar que el método getDeferBlocks().render() es asíncrono, por lo que debemos usar async/await en nuestra prueba.
+
+¿Qué otros escenarios podemos probar con defer?
+Además de probar la renderización completa de un componente diferido, también podemos probar otros escenarios:
+
+Estado de carga: Verificar que se muestra correctamente el placeholder de carga
+Estado de error: Comprobar que se maneja adecuadamente un error durante la carga
+Placeholder: Asegurarse de que el contenido provisional se muestra correctamente
+Para cada uno de estos escenarios, podemos utilizar diferentes métodos del objeto DeferBlock:
+
+// Para probar el estado de carga
+await fixture.getDeferBlocks().renderLoading();
+
+// Para probar el estado de error
+await fixture.getDeferBlocks().renderError();
+
+// Para probar el placeholder
+await fixture.getDeferBlocks().renderPlaceholder();
+Estas técnicas nos permiten probar exhaustivamente todos los aspectos de nuestros componentes diferidos, asegurando que funcionan correctamente en todos los escenarios posibles.
+
+El testing de componentes con dependencias y carga diferida en Angular puede parecer complejo al principio, pero con las herramientas y técnicas adecuadas, podemos garantizar la calidad de nuestro código. ¿Has implementado pruebas para componentes diferidos en tus proyectos? Comparte tu experiencia en los comentarios.
